@@ -1,0 +1,244 @@
+name: "Build armbian"
+
+on:
+  workflow_dispatch:
+    inputs:
+      armbian_board:
+        description: 'Board target'
+        required: true
+        type: choice
+        options:
+          - rk3328-box-trn9
+      armbian_revision:
+        description: 'Armbian revision (last stable or last nightly)'
+        required: false
+        default: 'stable'
+        type: choice
+        options:
+          - stable
+          - nightly
+      armbian_release:
+        description: 'Select OS Release'
+        required: false
+        default: 'bookworm'
+        type: choice
+        options:
+          - sid
+          - trixie
+          - bookworm
+          - noble
+          - jammy
+      armbian_kernel_branch:
+        description: 'Kernel branch'
+        required: false
+        default: 'current'
+        type: choice
+        options:
+          - legacy
+          - vendor
+          - current
+          - edge
+      armbian_ui:
+        description: 'Armbian user interface'
+        required: false
+        default: 'server'
+        type: choice
+        options:
+          - minimal
+          - server
+          - desktop
+      armbian_desktop_enviroment:
+        description: 'Desktop Enviroment'
+        required: false
+        default: 'xfce'
+        type: choice
+        options:
+          - xfce
+          - gnome
+          - cinnamon
+          - i3-wm
+          - kde-plasma
+          - kde-neon
+          - mate
+          - budgie
+          - xmonad
+      armbian_rootfs_type:
+        description: 'Root filesystem type'
+        required: false
+        default: 'ext4'
+        type: choice
+        options:
+          - ext4
+          - btrfs
+          - nilfs2
+          - xfs
+          - nfs
+      armbian_btrfs_compression:
+        description: 'Btrfs filesystem compression'
+        required: false
+        default: 'zlib'
+        type: choice
+        options:
+          - lzo
+          - none
+          - zlib
+          - zstd
+      armbian_cryptroot_enable:
+        description: 'Encrypt root with LUKS'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - false
+          - true
+      armbian_cryptroot_ssh_unlock:
+        description: 'Enable root ssh unlock'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - true
+          - false
+
+env:
+  TZ: America/New_York
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
+
+    steps:
+      - name: "Checkout Armbian build framework"
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: false
+          path: build
+
+      - name: Initialization environment
+        shell: bash
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt -y update
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo -E apt -y install 7zip jq grep
+          sudo -E apt -y install $(curl -fsSL https://raw.githubusercontent.com/SoStufo/tvbox-armbian/refs/heads/main/compile-kernel/tools/script/ubuntu2204-build-armbian-depends)
+          sudo -E systemctl daemon-reload
+          sudo -E apt clean
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Compile Armbian [ ${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_revision }}_${{ inputs.armbian_kernel_branch }}_${{ inputs.armbian_rootfs_type }}_encryptrootfs-${{ inputs.armbian_cryptroot_enable }}_${{ inputs.armbian_ui }} ]
+        shell: bash
+        id: compile
+        if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
+        run: |
+          ## COMPILE_ARGUMENTS
+          REVISION="$(curl -fsSL "https://raw.githubusercontent.com/armbian/os/refs/heads/main/${{ inputs.armbian_revision }}.json" | jq -r '.version')"
+          COMPILE_ARGS="BOARD=${{ inputs.armbian_board }} \
+                        REVISION=$REVISION \
+                        RELEASE=${{ inputs.armbian_release }} \
+                        BRANCH=${{ inputs.armbian_kernel_branch }} \
+                        KERNEL_CONFIGURE=no \
+                        BSPFREEZE=no \
+                        INSTALL_HEADERS=no \
+                        HOST=armbian \
+                        EXPERT=yes \
+                        SHARE_LOG=no \
+                        CONSOLE_AUTOLOGIN=yes \
+                        EXTRAWIFI=yes \
+                        COMPRESS_OUTPUTIMAGE="sha,gpg,img,xz" \
+                        IMAGE_XZ_COMPRESSION_RATIO=9 \
+                        ROOTFS_TYPE=${{ inputs.armbian_rootfs_type }}"
+          # BTRFS_COMPRESSION
+          if [ "${{ inputs.armbian_rootfs_type }}" == "btrfs" ];then
+            COMPILE_ARGS="$COMPILE_ARGS \
+                            BTRFS_COMPRESSION=${{ inputs.armbian_btrfs_compression }}"
+          fi
+          # CRYPTROOT
+          if [ "${{ inputs.armbian_cryptroot_enable }}" == "true" ];then
+            COMPILE_ARGS="$COMPILE_ARGS \
+                            CRYPTROOT_ENABLE=yes \
+                            CRYPTROOT_PASSPHRASE=CryptRootPassword \
+                            CRYPTROOT_SSH_UNLOCK_PORT=2022 \
+                            CRYPTROOT_MAPPER=armbian-root"
+            if [ "${{ inputs.armbian_cryptroot_ssh_unlock }}" == "true" ];then
+              COMPILE_ARGS="$COMPILE_ARGS \
+                            CRYPTROOT_SSH_UNLOCK=yes"
+            else
+              COMPILE_ARGS="$COMPILE_ARGS \
+                            CRYPTROOT_SSH_UNLOCK=no"
+            fi
+          fi
+          # ARMBIAN_UI
+          case "${{ inputs.armbian_ui }}" in
+            minimal)
+              COMPILE_ARGS="$COMPILE_ARGS \
+                              BUILD_MINIMAL=yes \
+                              BUILD_DESKTOP=no"
+              ;;
+            server)
+              COMPILE_ARGS="$COMPILE_ARGS \
+                              BUILD_MINIMAL=no \
+                              BUILD_DESKTOP=no"
+              ;;
+            desktop)
+              COMPILE_ARGS="$COMPILE_ARGS \
+                              BUILD_DESKTOP=yes \
+                              BUILD_MINIMAL=no \
+                              DESKTOP_APPGROUPS_SELECTED= \
+                              DESKTOP_ENVIRONMENT=${{ inputs.armbian_desktop_enviroment }} \
+                              DESKTOP_ENVIRONMENT_CONFIG_NAME=config_base"
+              ;;
+          esac
+
+          ## COMPILE
+          cd build
+          ./compile.sh $COMPILE_ARGS
+          cd ..
+
+          ## PREPARE_ARTIFACTS
+          ARTIFACTS_PATH="./release/artifacts"
+          if [ -d ./release ];then rm -rf ./release;fi
+          mkdir -p "$ARTIFACTS_PATH"
+          # DEBS
+          for i in debs; do
+            if [ ! -d "./build/output/$i" ];then
+              echo "Directory ./build/output/$i doesn't exist, skip."
+              continue
+            else
+              echo "Compressing: ./build/output/$i"
+              ARCHIVE="$ARTIFACTS_PATH/Armbian-unofficial_${REVISION}_${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_kernel_branch }}_${i}.7z"
+              7z a -t7z -mx=9 -myx=9 -ms=4g -mqs=on -mf=on -mhc=on -m0=LZMA2 -mmt=on -mmtf=on -md=64m -mfb=64 -bb0 "$ARCHIVE" ./build/output/$i/
+            fi
+          done
+
+          ## RELEASE_TITTLE - RELEASE_BODY
+          echo "### Armbian ${{ inputs.armbian_revision }}" > ./release/body.md
+          if [ "${{ inputs.armbian_cryptroot_enable }}" == "true" ];then
+            echo "- CRYPTROOT_PASSPHRASE     : CryptRootPassword" >> ./release/body.md
+            echo "- CRYPTROOT_SSH_UNLOCK_PORT: 2022" >> ./release/body.md
+            echo "- CRYPTROOT_MAPPER         : armbian-root" >> ./release/body.md
+
+            echo "build_tag=Armbian-unofficial_v${REVISION}_${{ inputs.armbian_rootfs_type }}_encrypted-root" >> ${GITHUB_OUTPUT}
+          else
+            echo "build_tag=Armbian-unofficial_v${REVISION}_${{ inputs.armbian_rootfs_type }}" >> ${GITHUB_OUTPUT}
+          fi
+
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Upload Armbian image to Release
+        uses: ncipollo/release-action@main
+        if: ${{ steps.compile.outputs.status }} == 'success' && !cancelled()
+        with:
+          tag: ${{ steps.compile.outputs.build_tag }}
+          artifacts: "release/artifacts/*, build/output/images/*.img*"
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          bodyFile: release/body.md
