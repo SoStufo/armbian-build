@@ -274,10 +274,6 @@
 	mali-supply = <&vdd_logic>;
 };
 
-&h265e {
-	status = "okay";
-};
-
 &h265e_mmu {
 	status = "okay";
 };
