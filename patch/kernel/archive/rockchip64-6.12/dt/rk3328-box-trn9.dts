@@ -293,11 +293,11 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&clk_32k_out>;
 
-	clk_32k {
-		clk_32k_out: clk-32k-out {
-			rockchip,pins = <1 RK_PD4 RK_FUNC_1 &pcfg_pull_none>;
-		};
-	};
+	
+
+
+
+
 
 	ir {
 		ir_int: ir-int {
@@ -322,6 +322,13 @@
 			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
+
+	clk_32k {
+		clk_32k_out: clk-32k-out {
+			rockchip,pins = <1 RK_PD4 RK_FUNC_1 &pcfg_pull_none>;
+		};
+	};
+	
 };
 
 &sdmmc {
