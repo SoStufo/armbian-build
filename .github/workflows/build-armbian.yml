@@ -194,11 +194,13 @@ jobs:
           case "${{ inputs.armbian_build_type }}" in
             kernel)
               COMPILE_ARGS="kernel BOARD=${{ inputs.armbian_board }} \
-                                   BRANCH=${{ inputs.armbian_kernel_branch }}"
+                                   BRANCH=${{ inputs.armbian_kernel_branch }} \
+                                   SHARE_LOG=yes"
               ;;
             dts-check)
               COMPILE_ARGS="dts-check BOARD=${{ inputs.armbian_board }} \
-                                      BRANCH=${{ inputs.armbian_kernel_branch }}"
+                                      BRANCH=${{ inputs.armbian_kernel_branch }} \
+                                      SHARE_LOG=yes"
             ;;
           esac
 
