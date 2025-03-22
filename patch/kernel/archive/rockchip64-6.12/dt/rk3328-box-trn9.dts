@@ -197,18 +197,17 @@
 };
 
 &dmc {
-	center-supply = <&vdd_logic>;
 	system-status-freq = <
-		/*system status         freq(KHz)*/
-		SYS_STATUS_NORMAL       1066000
-		SYS_STATUS_REBOOT       1066000
-		SYS_STATUS_SUSPEND      1066000
-		SYS_STATUS_VIDEO_1080P  1066000
-		SYS_STATUS_VIDEO_4K     1066000
-		SYS_STATUS_VIDEO_4K_10B 1066000
-		SYS_STATUS_PERFORMANCE  1066000
-		SYS_STATUS_BOOST        1066000
+		1066000
+		1066000
+		1066000
+		1066000
+		1066000
+		1066000
+		1066000
+		1066000
 	>;
+	center-supply = <&vdd_logic>;
 	status = "okay";
 };
 
