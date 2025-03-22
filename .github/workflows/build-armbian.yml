@@ -3,6 +3,14 @@ name: "Build armbian"
 on:
   workflow_dispatch:
     inputs:
+      armbian_build_type:
+        description: 'Build'
+        required: true
+        type: choice
+        options:
+          - image
+          - kernel
+          - dts-check
       armbian_board:
         description: 'Board target'
         required: true
@@ -91,14 +99,6 @@ on:
         options:
           - false
           - true
-      armbian_cryptroot_ssh_unlock:
-        description: 'Enable root ssh unlock'
-        required: false
-        default: 'true'
-        type: choice
-        options:
-          - true
-          - false
 
 env:
   TZ: America/New_York
@@ -148,7 +148,7 @@ jobs:
                         INSTALL_HEADERS=no \
                         HOST=armbian \
                         EXPERT=yes \
-                        SHARE_LOG=no \
+                        SHARE_LOG=yes \
                         CONSOLE_AUTOLOGIN=yes \
                         EXTRAWIFI=yes \
                         COMPRESS_OUTPUTIMAGE="sha,gpg,img,xz" \
@@ -165,14 +165,8 @@ jobs:
                             CRYPTROOT_ENABLE=yes \
                             CRYPTROOT_PASSPHRASE=CryptRootPassword \
                             CRYPTROOT_SSH_UNLOCK_PORT=2022 \
-                            CRYPTROOT_MAPPER=armbian-root"
-            if [ "${{ inputs.armbian_cryptroot_ssh_unlock }}" == "true" ];then
-              COMPILE_ARGS="$COMPILE_ARGS \
+                            CRYPTROOT_MAPPER=armbian-root \
                             CRYPTROOT_SSH_UNLOCK=yes"
-            else
-              COMPILE_ARGS="$COMPILE_ARGS \
-                            CRYPTROOT_SSH_UNLOCK=no"
-            fi
           fi
           # ARMBIAN_UI
           case "${{ inputs.armbian_ui }}" in
@@ -197,6 +191,17 @@ jobs:
           esac
 
           ## COMPILE
+          case "${{ inputs.armbian_build_type }}" in
+            kernel)
+              COMPILE_ARGS="kernel BOARD=${{ inputs.armbian_board }} \
+                                   BRANCH=${{ inputs.armbian_kernel_branch }}"
+              ;;
+            dts-check)
+              COMPILE_ARGS="dts-check BOARD=${{ inputs.armbian_board }} \
+                                      BRANCH=${{ inputs.armbian_kernel_branch }}"
+            ;;
+          esac
+
           cd build
           ./compile.sh $COMPILE_ARGS
           cd ..
