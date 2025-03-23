@@ -1,10 +1,11 @@
 /dts-v1/;
-/* #include "rk3328-dram-renegade-timing.dtsi" */
+
+#include "rk3328-dram-renegade-timing.dtsi"
 #include "rk3328.dtsi"
 
 / {
 	model = "Rockchip RK3328 TRN9";
-	compatible = "rockchip,rk3328-box-trn9", "rockchip,rk3328";
+	compatible = "rockchip,rk3328-trn9", "rockchip,rk3328";
 
 	aliases {
 		serial0 = &uart2;
