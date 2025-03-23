@@ -14,9 +14,7 @@ on:
       armbian_board:
         description: 'Board target'
         required: true
-        type: choice
-        options:
-          - rk3328-box-trn9
+        default: 'rk3328-box-trn9'
       armbian_revision:
         description: 'Armbian revision (last stable or last nightly)'
         required: false
