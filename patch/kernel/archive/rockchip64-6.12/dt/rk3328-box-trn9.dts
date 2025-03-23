@@ -1,8 +1,3 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
-/*
- * Copyright (c) 2017 PINE64
- */
-
 /dts-v1/;
 #include "rk3328-dram-renegade-timing.dtsi"
 #include "rk3328.dtsi"
@@ -22,8 +17,10 @@
 		compatible = "regulator-fixed";
 		gpio = <&gpio0 RK_PD6 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&sdmmc0m1_gpio>;
+		pinctrl-0 = <&sdmmc0m1_pin>;
 		regulator-name = "vcc_sd";
+		regulator-always-on;
+		regulator-boot-on;
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		vin-supply = <&vcc_io>;
