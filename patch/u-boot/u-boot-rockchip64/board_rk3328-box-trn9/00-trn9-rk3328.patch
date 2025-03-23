@@ -1,12 +1,14 @@
 diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
-index 06ccc03e..a2657ebe 100644
+index 8fb6a8a1f..6d8c7ec5a 100644
 --- a/arch/arm/dts/Makefile
 +++ b/arch/arm/dts/Makefile
-@@ -109,6 +109,7 @@ dtb-$(CONFIG_ROCKCHIP_RK3308) += \
- dtb-$(CONFIG_ROCKCHIP_RK3328) += \
- 	rk3328-evb.dtb \
- 	rk3328-nanopi-r2s.dtb \
-+	rk3328-box-trn9.dtb \
- 	rk3328-roc-cc.dtb \
- 	rk3328-rock64.dtb \
- 	rk3328-rock-pi-e.dtb
+@@ -90,6 +90,9 @@ dtb-$(CONFIG_ROCKCHIP_RK3288) += \
+ 	rk3288-veyron-speedy.dtb \
+ 	rk3288-vyasa.dtb
+ 
++dtb-$(CONFIG_ROCKCHIP_RK3328) += \
++	rk3328-box-trn9.dtb
++
+ dtb-$(CONFIG_ROCKCHIP_RK3368) += \
+ 	rk3368-lion-haikou.dtb \
+ 	rk3368-sheep.dtb \
