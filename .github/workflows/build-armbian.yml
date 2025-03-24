@@ -120,7 +120,6 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          echo "pwd: ${pwd}"
           df -hT
           docker rmi $(docker images -q) 2>/dev/null
           [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
@@ -164,8 +163,6 @@ jobs:
         run: |
           df -hT ${PWD}
           ln -sf /builder/build ${GITHUB_WORKSPACE}/build
-          ls /home/runner/work/_actions/SoStufo/armbian-build/
-          ln -sf /builder/build /home/runner/work/_actions/SoStufo/armbian-build/build
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Compile Armbian [ ${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_revision }}_${{ inputs.armbian_kernel_branch }}_${{ inputs.armbian_rootfs_type }}_encryptrootfs-${{ inputs.armbian_cryptroot_enable }}_${{ inputs.armbian_ui }} ]
