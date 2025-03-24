@@ -241,8 +241,6 @@ jobs:
           esac
 
           df -hT
-          df -hT {pwd}
-          echo "pwd: ${pwd}"
           cd build
           ./compile.sh $COMPILE_ARGS
           cd ..
