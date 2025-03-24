@@ -1,10 +1,9 @@
 diff --git a/configs/trn9-rk3328_defconfig b/configs/trn9-rk3328_defconfig
-new file mode 100755
-index 0000000000..1514ee63bb
+new file mode 100644
+index 0000000..1c9690e
 --- /dev/null
-+++ b/configs/mkspi-rk3328_defconfig
-@@ -0,0 +1,109 @@
-+# Based on roc-cc-rk3328_defconfig
++++ b/configs/trn9-rk3328_defconfig
+@@ -0,0 +1,108 @@
 +CONFIG_ARM=y
 +CONFIG_SKIP_LOWLEVEL_INIT=y
 +CONFIG_COUNTER_FREQUENCY=24000000
