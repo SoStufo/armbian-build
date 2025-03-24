@@ -151,7 +151,7 @@ jobs:
           REVISION="$(curl -fsSL "https://raw.githubusercontent.com/armbian/os/refs/heads/main/${{ inputs.armbian_revision }}.json" | jq -r '.version')"
           COMPILE_ARGS="BOARD=${{ inputs.armbian_board }} \
                         REVISION=$REVISION \
-                        ARTIFACT_IGNORE_CACHE=yes \
+                        ARTIFACT_IGNORE_CACHE=no \
                         RELEASE=${{ inputs.armbian_release }} \
                         BRANCH=${{ inputs.armbian_kernel_branch }} \
                         KERNEL_CONFIGURE=no \
@@ -207,13 +207,13 @@ jobs:
               COMPILE_ARGS="kernel BOARD=${{ inputs.armbian_board }} \
                                    BRANCH=${{ inputs.armbian_kernel_branch }} \
                                    SHARE_LOG=yes \
-                                   ARTIFACT_IGNORE_CACHE=yes"
+                                   ARTIFACT_IGNORE_CACHE=no"
               ;;
             dts-check)
               COMPILE_ARGS="dts-check BOARD=${{ inputs.armbian_board }} \
                                       BRANCH=${{ inputs.armbian_kernel_branch }} \
                                       SHARE_LOG=yes \
-                                      ARTIFACT_IGNORE_CACHE=yes"
+                                      ARTIFACT_IGNORE_CACHE=no"
             ;;
           esac
 
