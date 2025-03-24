@@ -152,6 +152,7 @@ jobs:
           COMPILE_ARGS="BOARD=${{ inputs.armbian_board }} \
                         REVISION=$REVISION \
                         ARTIFACT_IGNORE_CACHE=no \
+                        USE_TMPFS=no \
                         RELEASE=${{ inputs.armbian_release }} \
                         BRANCH=${{ inputs.armbian_kernel_branch }} \
                         KERNEL_CONFIGURE=no \
