@@ -1,7 +1,7 @@
-diff --git a/u-boot/scripts/dtc/pylibfdt/setup.py b/u-boot/scripts/dtc/pylibfdt/setup.py
+diff --git a/scripts/dtc/pylibfdt/setup.py b/scripts/dtc/pylibfdt/setup.py
 index 992cdec30..8ba3f2f5c 100644
---- a/u-boot/scripts/dtc/pylibfdt/setup.py
-+++ b/u-boot/scripts/dtc/pylibfdt/setup.py
+--- a/scripts/dtc/pylibfdt/setup.py
++++ b/scripts/dtc/pylibfdt/setup.py
 @@ -18,7 +18,7 @@ allows this script to be run stand-alone, e.g.:
      ./pylibfdt/setup.py install [--prefix=...]
  """
