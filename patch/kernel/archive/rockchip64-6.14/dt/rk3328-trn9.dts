@@ -1,6 +1,6 @@
 /dts-v1/;
 
-#include "rk3328-dram-renegade-timing.dtsi"
+/* #include "rk3328-dram-renegade-timing.dtsi" */
 #include "rk3328.dtsi"
 
 / {
