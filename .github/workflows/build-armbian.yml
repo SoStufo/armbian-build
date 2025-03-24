@@ -120,6 +120,7 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
+          echo "pwd: ${pwd}"
           df -hT
           docker rmi $(docker images -q) 2>/dev/null
           [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
