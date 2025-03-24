@@ -109,10 +109,6 @@ jobs:
     steps:
       - name: "Checkout Armbian build framework"
         uses: actions/checkout@v4
-        with:
-          ref: main
-          clean: false
-          path: build
 
       - name: Initialization environment
         shell: bash
@@ -157,12 +153,14 @@ jobs:
           df -Th
 
       - name: Download source code
-        id: link
+        id: down
         working-directory: /builder
         if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
         run: |
           df -hT ${PWD}
+          git clone -q --single-branch --depth=1 --branch=main https://github.com/SoStufo/armbian-build.git build
           ln -sf /builder/build ${GITHUB_WORKSPACE}/build
+          ln -sf /builder/build /home/runner/work/_actions/SoStufo/armbian-build/main/build
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Compile Armbian [ ${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_revision }}_${{ inputs.armbian_kernel_branch }}_${{ inputs.armbian_rootfs_type }}_encryptrootfs-${{ inputs.armbian_cryptroot_enable }}_${{ inputs.armbian_ui }} ]
@@ -243,6 +241,7 @@ jobs:
           esac
 
           df -hT
+
           cd build
           ./compile.sh $COMPILE_ARGS
           cd ..
