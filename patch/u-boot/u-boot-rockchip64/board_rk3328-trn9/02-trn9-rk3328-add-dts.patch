@@ -1,10 +1,11 @@
 diff --git a/arch/arm/dts/rk3328-trn9.dts b/arch/arm/dts/rk3328-trn9.dts
 new file mode 100644
-index 000000000..ae2b0ee29
+index 000000000..c9ddfe8c0
 --- /dev/null
 +++ b/arch/arm/dts/rk3328-trn9.dts
-@@ -0,0 +1,423 @@
+@@ -0,0 +1,416 @@
 +/dts-v1/;
++
 +/* #include "rk3328-dram-renegade-timing.dtsi" */
 +#include "rk3328.dtsi"
 +
@@ -369,14 +370,6 @@ index 000000000..ae2b0ee29
 +
 +&spdif {
 +	pinctrl-0 = <&spdifm0_tx>;
-+	status = "okay";
-+};
-+
-+&spdif_out {
-+	status = "okay";
-+};
-+
-+&spdif_sound {
 +	status = "okay";
 +};
 +
