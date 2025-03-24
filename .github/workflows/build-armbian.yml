@@ -107,65 +107,67 @@ jobs:
     if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
 
     steps:
-      - name: Checkout
+      - name: FreeSpaceBefore
+        run: |
+          echo "Free space:"
+          df -hT
+
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 0
+          temp-reserve-mb: 0
+          swap-size-mb: 0
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+
+      - name: FreeSpaceAfter
+        run: |
+          echo "Free space:"
+          df -hT
+
+      - name: "Checkout Armbian build framework"
         uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: false
+          path: build
 
       - name: Initialization environment
+        shell: bash
         id: init
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          docker rmi $(docker images -q) 2>/dev/null
-          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
-          sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android 2>/dev/null
-          sudo swapoff -a
-          sudo rm -f /swapfile /mnt/swapfile
-          sudo -E apt-get -y update
-          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          df -hT
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          sudo docker image prune --all --force || true
+          sudo docker builder prune -a || true
+          docker rmi $(docker images -q) 2>/dev/null  || true
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"  || true
+          sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android 2>/dev/null  || true
+          sudo swapoff -a || true
+          sudo rm -f /swapfile /mnt/swapfile || true
+          sudo -E apt -y update
+          sudo -E apt -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
           sudo -E apt -y install 7zip jq grep
-          sudo -E apt-get -y install $(curl -fsSL https://raw.githubusercontent.com/SoStufo/tvbox-armbian/refs/heads/main/compile-kernel/tools/script/ubuntu2204-build-armbian-depends)
+          sudo -E apt -y install $(curl -fsSL https://raw.githubusercontent.com/SoStufo/tvbox-armbian/refs/heads/main/compile-kernel/tools/script/ubuntu2204-build-armbian-depends)
           sudo -E systemctl daemon-reload
-          sudo -E apt-get -y full-upgrade
-          sudo -E apt-get -y autoremove --purge
-          sudo -E apt-get clean
-          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
-          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          #sudo -E apt -y full-upgrade
+          sudo -E apt -y autoremove --purge
+          sudo -E apt clean
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile} || true
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup} || true
           sudo timedatectl set-timezone "${TZ}"
           echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Create simulated physical disk
-        run: |
-          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
-          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
-          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
-          sudo truncate -s "${root_size}"G /root.img
-          sudo losetup /dev/loop6 /mnt/mnt.img
-          sudo losetup /dev/loop7 /root.img
-          sudo pvcreate /dev/loop6
-          sudo pvcreate /dev/loop7
-          sudo vgcreate github /dev/loop6 /dev/loop7
-          sudo lvcreate -n runner -l 100%FREE github
-          sudo mkfs.xfs /dev/github/runner
-          sudo mkdir -p /builder
-          sudo mount /dev/github/runner /builder
-          sudo chown -R runner.runner /builder
-          df -Th
-
-      - name: Download source code
-        id: down
-        working-directory: /builder
-        if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
-        run: |
-          df -hT ${PWD}
-          git clone -q --single-branch --depth=1 --branch=main https://github.com/SoStufo/armbian-build.git build
-          ln -sf /builder/build ${GITHUB_WORKSPACE}/build
-          ln -sf /builder/build /home/runner/work/_actions/SoStufo/armbian-build/main/build
-          echo "status=success" >> ${GITHUB_OUTPUT}
-
       - name: Compile Armbian [ ${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_revision }}_${{ inputs.armbian_kernel_branch }}_${{ inputs.armbian_rootfs_type }}_encryptrootfs-${{ inputs.armbian_cryptroot_enable }}_${{ inputs.armbian_ui }} ]
+        shell: bash
         id: compile
-        working-directory: /builder
-        if: ${{ steps.down.outputs.status }} == 'success' && !cancelled()
+        if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
         run: |
           ## COMPILE_ARGUMENTS
           REVISION="$(curl -fsSL "https://raw.githubusercontent.com/armbian/os/refs/heads/main/${{ inputs.armbian_revision }}.json" | jq -r '.version')"
@@ -239,7 +241,6 @@ jobs:
           esac
 
           df -hT
-
           cd build
           ./compile.sh $COMPILE_ARGS
           cd ..
