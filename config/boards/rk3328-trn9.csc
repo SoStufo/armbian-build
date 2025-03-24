@@ -1,11 +1,11 @@
 # Rockchip RK3328 quad core 2GB GBE eMMC USB3 WiFi
 BOARD_NAME="trn9"
 BOARDFAMILY="rockchip64"
-BOOT_SOC="rk3328"
+#BOOT_SOC="rk3328"
 BOARD_MAINTAINER=""
 BOOTCONFIG="trn9-rk3328_defconfig"
 KERNEL_TARGET="current,edge"
 KERNEL_TEST_TARGET="current"
 FULL_DESKTOP="yes"
 BOOT_LOGO="desktop"
-BOOT_FDT_FILE="rockchip/rk3328-trn9.dtb"
+#BOOT_FDT_FILE="rockchip/rk3328-trn9.dtb"
