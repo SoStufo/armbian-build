@@ -167,7 +167,7 @@ jobs:
         shell: bash
         id: compile
         working-directory: /builder
-        if: ${{ steps.link.outputs.status }} == 'success' && !cancelled()
+        if: ${{ steps.down.outputs.status }} == 'success' && !cancelled()
         run: |
           ## COMPILE_ARGUMENTS
           REVISION="$(curl -fsSL "https://raw.githubusercontent.com/armbian/os/refs/heads/main/${{ inputs.armbian_revision }}.json" | jq -r '.version')"
