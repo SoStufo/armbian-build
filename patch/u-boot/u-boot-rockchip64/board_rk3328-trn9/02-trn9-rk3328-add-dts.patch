@@ -5,7 +5,7 @@ index 000000000..ae2b0ee29
 +++ b/arch/arm/dts/rk3328-trn9.dts
 @@ -0,0 +1,423 @@
 +/dts-v1/;
-+/* #include "rk3328-dram-renegade-timing.dtsi" */
++#include "rk3328-dram-renegade-timing.dtsi"
 +#include "rk3328.dtsi"
 +
 +/ {
