@@ -169,6 +169,7 @@ jobs:
       - name: Compile Armbian [ ${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_revision }}_${{ inputs.armbian_kernel_branch }}_${{ inputs.armbian_rootfs_type }}_encryptrootfs-${{ inputs.armbian_cryptroot_enable }}_${{ inputs.armbian_ui }} ]
         shell: bash
         id: compile
+        working-directory: /builder
         if: ${{ steps.link.outputs.status }} == 'success' && !cancelled()
         run: |
           ## COMPILE_ARGUMENTS
