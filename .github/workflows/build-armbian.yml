@@ -108,11 +108,6 @@ jobs:
     if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
 
     steps:
-      - name: FreeSpaceBefore
-        run: |
-          echo "Free space:"
-          df -hT
-
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
@@ -124,11 +119,6 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
-
-      - name: FreeSpaceAfter
-        run: |
-          echo "Free space:"
-          df -hT
 
       - name: "Checkout Armbian build framework"
         uses: actions/checkout@v4
@@ -143,6 +133,7 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
+          echo "Free space:"
           df -hT
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
           sudo docker image prune --all --force || true
@@ -255,7 +246,7 @@ jobs:
 
           echo "Updating ownership permissions on workspace directory to user ${{ steps.get_uid.outputs.uid }}"
           echo "Looking for files/directories not owned by '${{ steps.get_uid.outputs.uid }}':"
-          find . ! -user "${{ steps.get_uid.outputs.uid }}" -exec echo "{}" \; -exec chown -cvf "${{ steps.get_uid.outputs.uid }}" "{}" \;
+          find ./build/output ! -user "${{ steps.get_uid.outputs.uid }}" -exec echo "{}" \; -exec chown -cvf "${{ steps.get_uid.outputs.uid }}" "{}" \;
           
           echo "try ls ./build/output/images/"
           ls ./build/output/images/
@@ -264,6 +255,14 @@ jobs:
           ARTIFACTS_PATH="./release/artifacts"
           if [ -d ./release ];then rm -rf ./release;fi
           mkdir -p "$ARTIFACTS_PATH"
+          MAXFILESIZE="1500000000"
+          IMGSIZE="$(stat -c%s ./build/output/images/*.img.xz)"
+          #if (( FILESIZE > MAXSIZE)); then
+          #  7z a -m0=Copy -t7z -v1500m ./build/output/images/*.img.xz
+          #else
+            mv build/output/images/*.img* "$ARTIFACTS_PATH/"
+          #fi
+
           # DEBS
           for i in debs; do
             if [ ! -d "./build/output/$i" ];then
@@ -295,7 +294,7 @@ jobs:
         if: ${{ steps.compile.outputs.status }} == 'success' && !cancelled()
         with:
           tag: ${{ steps.compile.outputs.build_tag }}
-          artifacts: "release/artifacts/*, build/output/images/*.img*"
+          artifacts: release/artifacts/*
           allowUpdates: true
           removeArtifacts: false
           replacesArtifacts: true
