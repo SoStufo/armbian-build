@@ -11,6 +11,7 @@ on:
           - image
           - kernel
           - dts-check
+          - kernel-dtb
       armbian_board:
         description: 'Board target'
         required: true
@@ -164,6 +165,13 @@ jobs:
           sudo timedatectl set-timezone "${TZ}"
           echo "status=success" >> ${GITHUB_OUTPUT}
 
+      - name: Get Actions user id
+        id: get_uid
+        run: |
+          actions_user_id=`id -u $USER`
+          echo $actions_user_id
+          echo "uid=$actions_user_id" >> $GITHUB_OUTPUT
+
       - name: Compile Armbian [ ${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_revision }}_${{ inputs.armbian_kernel_branch }}_${{ inputs.armbian_rootfs_type }}_encryptrootfs-${{ inputs.armbian_cryptroot_enable }}_${{ inputs.armbian_ui }} ]
         shell: bash
         id: compile
@@ -244,6 +252,13 @@ jobs:
           cd build
           ./compile.sh $COMPILE_ARGS
           cd ..
+
+          echo "Updating ownership permissions on workspace directory to user ${{ steps.get_uid.outputs.uid }}"
+          echo "Looking for files/directories not owned by '${{ steps.get_uid.outputs.uid }}':"
+          find . ! -user "${{ steps.get_uid.outputs.uid }}" -exec echo "{}" \; -exec chown -cvf "${{ steps.get_uid.outputs.uid }}" "{}" \;
+          
+          echo "try ls ./build/output/images/"
+          ls ./build/output/images/
 
           ## PREPARE_ARTIFACTS
           ARTIFACTS_PATH="./release/artifacts"
