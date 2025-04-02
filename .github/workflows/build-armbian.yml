@@ -163,6 +163,12 @@ jobs:
           echo $actions_user_id
           echo "uid=$actions_user_id" >> $GITHUB_OUTPUT
 
+      - uses: austenstone/job-id@v1
+        id: job-id
+      - run: echo $GITHUB_JOB_ID
+        env:
+          GITHUB_JOB_ID: ${{ steps.job-id.outputs.job-id }}
+
       - name: Compile Armbian [ ${{ inputs.armbian_board }}_${{ inputs.armbian_release }}_${{ inputs.armbian_revision }}_${{ inputs.armbian_kernel_branch }}_${{ inputs.armbian_rootfs_type }}_encryptrootfs-${{ inputs.armbian_cryptroot_enable }}_${{ inputs.armbian_ui }} ]
         shell: bash
         id: compile
@@ -282,7 +288,7 @@ jobs:
             echo "- CRYPTROOT_SSH_UNLOCK_PORT: 2022" >> ./release/body.md
             echo "- CRYPTROOT_MAPPER         : armbian-root" >> ./release/body.md
 
-            echo "build_tag=Armbian-unofficial_v${REVISION}_${{ inputs.armbian_rootfs_type }}_encrypted-root" >> ${GITHUB_OUTPUT}
+            echo "build_tag=${{ steps.job-id.outputs.job-id }}_Armbian-unofficial_v${REVISION}_${{ inputs.armbian_rootfs_type }}_encrypted-root" >> ${GITHUB_OUTPUT}
           else
             echo "build_tag=Armbian-unofficial_v${REVISION}_${{ inputs.armbian_rootfs_type }}" >> ${GITHUB_OUTPUT}
           fi
