@@ -156,13 +156,6 @@ jobs:
           sudo timedatectl set-timezone "${TZ}"
           echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Get Actions user id
-        id: get_uid
-        run: |
-          actions_user_id=`id -u $USER`
-          echo $actions_user_id
-          echo "uid=$actions_user_id" >> $GITHUB_OUTPUT
-
       - uses: austenstone/job-id@v1
         id: job-id
       - run: echo $GITHUB_JOB_ID
@@ -250,25 +243,10 @@ jobs:
           ./compile.sh $COMPILE_ARGS
           cd ..
 
-          echo "Updating ownership permissions on workspace directory to user ${{ steps.get_uid.outputs.uid }}"
-          echo "Looking for files/directories not owned by '${{ steps.get_uid.outputs.uid }}':"
-          find ./build/output ! -user "${{ steps.get_uid.outputs.uid }}" -exec echo "{}" \; -exec chown -cvf "${{ steps.get_uid.outputs.uid }}" "{}" \;
-          
-          echo "try ls ./build/output/images/"
-          ls ./build/output/images/
-
           ## PREPARE_ARTIFACTS
           ARTIFACTS_PATH="./release/artifacts"
           if [ -d ./release ];then rm -rf ./release;fi
           mkdir -p "$ARTIFACTS_PATH"
-          MAXFILESIZE="1500000000"
-          IMGSIZE="$(stat -c%s ./build/output/images/*.img.xz)"
-          #if (( FILESIZE > MAXSIZE)); then
-          #  7z a -m0=Copy -t7z -v1500m ./build/output/images/*.img.xz
-          #else
-            mv build/output/images/*.img* "$ARTIFACTS_PATH/"
-          #fi
-
           # DEBS
           for i in debs; do
             if [ ! -d "./build/output/$i" ];then
@@ -300,7 +278,7 @@ jobs:
         if: ${{ steps.compile.outputs.status }} == 'success' && !cancelled()
         with:
           tag: ${{ steps.compile.outputs.build_tag }}
-          artifacts: release/artifacts/*
+          artifacts: "release/artifacts/*, build/output/images/*.img*"
           allowUpdates: true
           removeArtifacts: false
           replacesArtifacts: true
