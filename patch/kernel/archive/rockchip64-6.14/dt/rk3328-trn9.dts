@@ -90,6 +90,19 @@
 		pinctrl-0 = <&wifi_enable_h>;
 		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
 	};
+
+	wireless-bluetooth {
+		compatible = "bluetooth-platdata";
+		BT,power_gpio = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;
+		BT,wake_host_irq = <&gpio1 RK_PD2 GPIO_ACTIVE_HIGH>;
+	};
+
+	wireless-wlan {
+		compatible = "wlan-platdata";
+		rockchip,grf = <&grf>;
+		wifi_chip_type = "rtl8723bs";
+		WIFI,host_wake_irq = <&gpio3 RK_PA1 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &analog_sound {
